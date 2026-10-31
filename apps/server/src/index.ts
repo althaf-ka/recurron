@@ -7,23 +7,25 @@ import { router } from './router'
 const app = new Hono<{ Bindings: Env }>()
 const rpcHandler = new RPCHandler(router)
 
-app.use('*', async (c, next) => {
-  return cors({
-    origin: c.env.WEB_ORIGIN,
-    credentials: true,
-    allowMethods: ['GET', 'POST', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
-  })(c, next)
-})
+app.use(
+  '*',
+  async (c, next) =>
+    await cors({
+      allowHeaders: ['Content-Type', 'Authorization'],
+      allowMethods: ['GET', 'POST', 'OPTIONS'],
+      credentials: true,
+      origin: c.env.WEB_ORIGIN,
+    })(c, next),
+)
 
 app.get('/health', (c) => c.json({ status: 'ok' }))
-app.all('/api/auth/*', (c) => createAuth(c.env).handler(c.req.raw))
+app.all('/api/auth/*', async (c) => await createAuth(c.env).handler(c.req.raw))
 app.all('/rpc/*', async (c) => {
   const { matched, response } = await rpcHandler.handle(c.req.raw, {
-    prefix: '/rpc',
     context: {},
+    prefix: '/rpc',
   })
-  return matched ? c.newResponse(response.body, response) : c.notFound()
+  return matched ? c.newResponse(response.body, response) : await c.notFound()
 })
 
 app.onError((_error, c) => {

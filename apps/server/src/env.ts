@@ -8,17 +8,17 @@ const originSchema = z
   .refine((value) => ['http:', 'https:'].includes(new URL(value).protocol))
 
 const authEnvironmentSchema = z.object({
+  BETTER_AUTH_SECRET: z.string().min(32),
+  BETTER_AUTH_URL: originSchema,
   DATABASE_URL: z
     .url()
     .refine((value) =>
       ['postgres:', 'postgresql:'].includes(new URL(value).protocol),
     ),
-  BETTER_AUTH_SECRET: z.string().min(32),
-  BETTER_AUTH_URL: originSchema,
   WEB_ORIGIN: originSchema,
 })
 
-export function readAuthEnvironment(bindings: Env) {
+export const readAuthEnvironment = (bindings: Env) => {
   const result = authEnvironmentSchema.safeParse(bindings)
   if (!result.success) {
     // Do not include binding values or database URLs in errors.

@@ -2,12 +2,7 @@ import { sql } from 'drizzle-orm'
 import { createDatabase } from './index'
 
 const databaseUrl = process.env.DATABASE_URL
-if (!databaseUrl) {
-  console.error(
-    'DATABASE_URL is required. Set it in packages/db/.env or the shell.',
-  )
-  process.exitCode = 1
-} else {
+if (databaseUrl !== undefined && databaseUrl !== '') {
   try {
     const db = createDatabase(databaseUrl)
     await db.execute(sql`select 1 as connected`)
@@ -24,4 +19,9 @@ if (!databaseUrl) {
     )
     process.exitCode = 1
   }
+} else {
+  console.error(
+    'DATABASE_URL is required. Set it in packages/db/.env or the shell.',
+  )
+  process.exitCode = 1
 }

@@ -9,8 +9,8 @@ export const apiClient: ContractRouterClient<typeof apiContract> =
   createORPCClient(
     new RPCLink({
       url: `${API_URL}/rpc`,
-      fetch: (request, init) =>
-        fetch(request, { ...init, credentials: 'include' }),
+      fetch: async (request, init) =>
+        await fetch(request, { ...init, credentials: 'include' }),
     }),
   )
 

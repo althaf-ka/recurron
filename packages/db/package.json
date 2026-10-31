@@ -19,9 +19,9 @@
   },
   "devDependencies": {
     "@recurron/typescript-config": "workspace:*",
-    "typescript": "catalog:",
     "@types/node": "catalog:",
     "drizzle-kit": "catalog:",
-    "tsx": "catalog:"
+    "tsx": "catalog:",
+    "typescript": "catalog:"
   }
 }

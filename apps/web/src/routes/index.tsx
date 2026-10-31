@@ -2,12 +2,16 @@ import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { orpc } from '../lib/api'
 
-export const Route = createFileRoute('/')({
-  component: Home,
-})
-
-function Home() {
+const Home = () => {
   const ping = useQuery(orpc.system.ping.queryOptions())
+  let status: string
+  if (ping.isPending) {
+    status = 'Connecting…'
+  } else if (ping.isError) {
+    status = 'Unavailable'
+  } else {
+    status = ping.data.message
+  }
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-20">
@@ -15,14 +19,11 @@ function Home() {
       <h1 className="mt-4 text-4xl font-semibold tracking-tight">
         Your starting point.
       </h1>
-      <p className="mt-4 text-slate-600">
-        API status:{' '}
-        {ping.isPending
-          ? 'Connecting…'
-          : ping.isError
-            ? 'Unavailable'
-            : ping.data.message}
-      </p>
+      <p className="mt-4 text-slate-600">API status: {status}</p>
     </main>
   )
 }
+
+export const Route = createFileRoute('/')({
+  component: Home,
+})

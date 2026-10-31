@@ -11,20 +11,20 @@
     "test": "tsx --test src/index.test.ts"
   },
   "dependencies": {
+    "@orpc/server": "catalog:",
     "@recurron/api": "workspace:*",
     "@recurron/db": "workspace:*",
-    "@orpc/server": "catalog:",
     "better-auth": "catalog:",
     "hono": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@recurron/typescript-config": "workspace:*",
-    "typescript": "catalog:",
     "@orpc/client": "catalog:",
+    "@orpc/contract": "catalog:",
+    "@recurron/typescript-config": "workspace:*",
     "@types/node": "catalog:",
     "tsx": "catalog:",
-    "wrangler": "catalog:",
-    "@orpc/contract": "catalog:"
+    "typescript": "catalog:",
+    "wrangler": "catalog:"
   }
 }

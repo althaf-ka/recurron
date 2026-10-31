@@ -5,8 +5,10 @@ import { createRoot } from 'react-dom/client'
 import { queryClient, router } from './router'
 import './styles.css'
 
-const root = document.getElementById('root')
-if (!root) throw new Error('Missing root element')
+const root = document.querySelector('#root')
+if (!root) {
+  throw new Error('Missing root element')
+}
 
 createRoot(root).render(
   <StrictMode>

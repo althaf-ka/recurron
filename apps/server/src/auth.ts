@@ -4,14 +4,12 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { readAuthEnvironment } from './env'
 
-export function createAuth(bindings: Env) {
+export const createAuth = (bindings: Env) => {
   const env = readAuthEnvironment(bindings)
   return betterAuth({
     appName: 'Recurron',
-    baseURL: env.BETTER_AUTH_URL,
     basePath: '/api/auth',
-    secret: env.BETTER_AUTH_SECRET,
-    trustedOrigins: [env.WEB_ORIGIN],
+    baseURL: env.BETTER_AUTH_URL,
     database: drizzleAdapter(createDatabase(env.DATABASE_URL), {
       provider: 'pg',
       schema,
@@ -19,5 +17,7 @@ export function createAuth(bindings: Env) {
       transaction: false,
     }),
     emailAndPassword: { enabled: true },
+    secret: env.BETTER_AUTH_SECRET,
+    trustedOrigins: [env.WEB_ORIGIN],
   })
 }
