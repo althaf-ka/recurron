@@ -160,3 +160,30 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
+
+@media print {
+  [data-slot='sidebar'],
+  [data-slot='sidebar-container'],
+  [data-slot='sidebar-gap'],
+  header,
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+  [data-slot='sidebar-inset'] {
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+  body {
+    background: white;
+    color: black;
+  }
+  .invoice-print {
+    font-size: 10pt;
+  }
+  .invoice-print table {
+    width: 100%;
+  }
+  .invoice-print tr {
+    break-inside: avoid;
+  }
+}

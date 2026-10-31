@@ -53,6 +53,7 @@ import {
 import { useAccess } from '../lib/access'
 import type { apiClient } from '../lib/api'
 import { orpc } from '../lib/api'
+import { FinanceOverview } from './finance'
 
 type SubscriptionList = Awaited<ReturnType<typeof apiClient.subscription.list>>
 type SubscriptionSummary = SubscriptionList['items'][number]
@@ -353,6 +354,7 @@ export const OverviewPage = ({ area }: { area: 'admin' | 'app' }) => {
 
   return (
     <div className="space-y-6">
+      <FinanceOverview area={area} />
       <PageHeader
         actions={
           <>

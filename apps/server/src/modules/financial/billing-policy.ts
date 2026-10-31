@@ -106,6 +106,11 @@ const choose = (current: Choice | undefined, next: Choice) => {
   return current
 }
 
+const usageAvailable = (
+  rule: BillingDiscountRule,
+  counts: Map<string, number>,
+) => rule.usageLimit === null || (counts.get(rule.id) ?? 0) < rule.usageLimit
+
 const chooseProductDiscounts = (
   lines: BillingSourceLine[],
   subtotals: number[],
@@ -147,6 +152,7 @@ const chooseProductDiscounts = (
       if (
         rule.discountScope === 'PRODUCT' &&
         eligibleRules.has(rule.id) &&
+        usageAvailable(rule, usageCounts) &&
         rule.productIds.includes(line.productId)
       ) {
         best = choose(best, {
@@ -199,12 +205,14 @@ const allocateProportionally = (amountMinor: number, bases: number[]) => {
     return bases.map(() => 0)
   }
   let allocated = 0
-  return bases.map((base, index) => {
-    if (index === bases.length - 1) {
-      return subtractMinor(amountMinor, allocated)
-    }
-    const share = Number((BigInt(amountMinor) * BigInt(base)) / BigInt(total))
-    allocated = addMinor(allocated, share)
+  let cumulativeBase = 0
+  return bases.map((base) => {
+    cumulativeBase = addMinor(cumulativeBase, base)
+    const cumulativeShare = Number(
+      (BigInt(amountMinor) * BigInt(cumulativeBase)) / BigInt(total),
+    )
+    const share = subtractMinor(cumulativeShare, allocated)
+    allocated = cumulativeShare
     return share
   })
 }

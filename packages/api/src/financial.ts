@@ -48,6 +48,13 @@ const discountInput = z
       value.discountScope === 'SUBSCRIPTION' || value.productIds.length > 0,
     { message: 'Select at least one product for a product discount' },
   )
+  .refine(
+    (value) =>
+      value.startsAt === null ||
+      value.endsAt === null ||
+      value.endsAt >= value.startsAt,
+    { message: 'End date must be on or after start date' },
+  )
 const discountRecord = discountInput.extend({
   id: z.string(),
   usageCount: z.number(),
@@ -168,6 +175,17 @@ export const financialContract = {
       .input(z.object({ data: discountInput, id: z.string() }))
       .output(resultId),
   },
+  finance: {
+    summary: errors.input(z.object({})).output(
+      z.object({
+        activeSubscriptions: z.number(),
+        collectedMinor: z.number(),
+        outstandingMinor: z.number(),
+        overdueInvoices: z.number(),
+        subscriptionsDue: z.number(),
+      }),
+    ),
+  },
   invoice: {
     cancel: errors.input(id).output(resultId),
     confirm: errors.input(id).output(resultId),
@@ -177,6 +195,17 @@ export const financialContract = {
       .output(z.object({ items: z.array(invoiceRow), total: z.number() })),
   },
   payment: {
+    list: errors.input(directoryInput).output(
+      z.object({
+        items: z.array(
+          paymentRecord.extend({
+            customerName: z.string(),
+            invoiceNumber: z.string(),
+          }),
+        ),
+        total: z.number(),
+      }),
+    ),
     listForInvoice: errors
       .input(z.object({ invoiceId: z.string().min(1) }))
       .output(z.array(paymentRecord)),

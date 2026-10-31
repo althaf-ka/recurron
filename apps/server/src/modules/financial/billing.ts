@@ -92,7 +92,11 @@ const loadDueCandidates = async (databaseUrl: string, billingDate: string) => {
     .leftJoin(product, eq(product.id, subscriptionLine.productId))
     .leftJoin(taxRule, eq(taxRule.id, product.taxRuleId))
     .where(dueFilter(billingDate))
-    .orderBy(asc(subscription.nextBillingDate), subscription.id)
+    .orderBy(
+      asc(subscription.nextBillingDate),
+      subscription.id,
+      subscriptionLine.id,
+    )
 
   const candidates = new Map<string, BillingCandidate>()
   for (const row of rows) {
@@ -348,6 +352,12 @@ const loadRulesForTransaction = async (
   }
 }
 
+const reachedNaturalEnd = (
+  expiry: string | null,
+  billingDate: string,
+  next: string,
+) => expiry !== null && billingDate >= expiry && next > expiry
+
 const processSubscription = async (
   tx: Parameters<
     Parameters<
@@ -461,23 +471,35 @@ const processSubscription = async (
   const paidAt = new Date()
   const shouldClose =
     record.plan.autoCloseOnExpiry &&
-    record.expiryDate !== null &&
-    next > record.expiryDate
-  await tx.insert(invoice).values({
-    billingPeriodEnd: periodEnd,
-    billingPeriodStart: start,
-    customerId: record.customerId,
-    discountTotalMinor: calculation.discountMinor,
-    dueDate: dateAfterDays(billingDate, record.paymentTermDays),
-    id: invoiceId,
-    invoiceNumber,
-    invoiceStatus: 'DRAFT',
-    issueDate: billingDate,
-    subscriptionId: id,
-    subtotalMinor: calculation.subtotalMinor,
-    taxTotalMinor: calculation.taxMinor,
-    totalMinor: calculation.totalMinor,
-  })
+    reachedNaturalEnd(record.expiryDate, billingDate, next)
+  const inserted = await tx
+    .insert(invoice)
+    .values({
+      billingPeriodEnd: periodEnd,
+      billingPeriodStart: start,
+      customerId: record.customerId,
+      discountTotalMinor: calculation.discountMinor,
+      dueDate: dateAfterDays(billingDate, record.paymentTermDays),
+      id: invoiceId,
+      invoiceNumber,
+      invoiceStatus: 'DRAFT',
+      issueDate: billingDate,
+      subscriptionId: id,
+      subtotalMinor: calculation.subtotalMinor,
+      taxTotalMinor: calculation.taxMinor,
+      totalMinor: calculation.totalMinor,
+    })
+    .onConflictDoNothing({
+      target: [
+        invoice.subscriptionId,
+        invoice.billingPeriodStart,
+        invoice.billingPeriodEnd,
+      ],
+    })
+    .returning({ id: invoice.id })
+  if (inserted.length === 0) {
+    return { amountMinor: 0, created: false }
+  }
   const invoiceLines = calculation.lines.map((line) => ({
     ...line,
     id: crypto.randomUUID(),
@@ -509,9 +531,37 @@ const processSubscription = async (
   return { amountMinor: calculation.totalMinor, created: true }
 }
 
+const processCandidate = async (
+  connection: ReturnType<typeof createTransactionDatabase>,
+  runId: string,
+  subscriptionId: string,
+  billingDate: string,
+) => {
+  try {
+    return await connection.db.transaction(
+      async (tx) => await processSubscription(tx, subscriptionId, billingDate),
+    )
+  } catch (error) {
+    console.error(
+      JSON.stringify({
+        billingRunId: runId,
+        errorCode:
+          error instanceof ORPCError ? 'BUSINESS_ERROR' : 'TRANSACTION_FAILED',
+        event: 'billing.subscription.failed',
+        subscriptionId,
+      }),
+    )
+    return { amountMinor: 0, created: false, failed: true }
+  }
+}
+
 export const run = async (databaseUrl: string, billingDate: string) =>
   await databaseOperation(async () => {
-    const candidates = await loadDueCandidates(databaseUrl, billingDate)
+    const candidates = await createDatabase(databaseUrl)
+      .select({ id: subscription.id })
+      .from(subscription)
+      .where(dueFilter(billingDate))
+      .orderBy(subscription.nextBillingDate, subscription.id)
     if (candidates.length === 0) {
       throw new ORPCError('BAD_REQUEST', {
         message: 'No subscriptions are due for billing on this date',
@@ -537,19 +587,18 @@ export const run = async (databaseUrl: string, billingDate: string) =>
     let failures = 0
     let totalAmountMinor = 0
     try {
-      const processed = await Promise.all(
-        candidates.map(async (candidate) => {
-          try {
-            return await connection.db.transaction(
-              async (tx) =>
-                await processSubscription(tx, candidate.id, billingDate),
-            )
-          } catch {
-            return { amountMinor: 0, created: false, failed: true }
-          }
-        }),
+      const results = await Promise.all(
+        candidates.map(
+          async (candidate) =>
+            await processCandidate(
+              connection,
+              runId,
+              candidate.id,
+              billingDate,
+            ),
+        ),
       )
-      for (const result of processed) {
+      for (const result of results) {
         if ('failed' in result) {
           failures += 1
           subscriptionsSkipped += 1

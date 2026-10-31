@@ -56,6 +56,10 @@ import {
   listPayments,
 } from './modules/financial/invoice'
 import { recordPayment } from './modules/financial/payment'
+import {
+  financeSummary,
+  listPaymentDirectory,
+} from './modules/financial/reporting'
 
 const implementation = implement(apiContract).$context<RpcContext>()
 
@@ -126,6 +130,13 @@ export const router = implementation.router({
           await updateDiscount(context.databaseUrl, input.id, input.data),
       ),
   },
+  finance: {
+    summary: implementation.finance.summary
+      .use(requirePermission({ report: ['read'] }))
+      .handler(
+        async ({ context }) => await financeSummary(context.databaseUrl),
+      ),
+  },
   invoice: {
     cancel: implementation.invoice.cancel
       .use(requirePermission({ invoice: ['cancel'] }))
@@ -153,6 +164,12 @@ export const router = implementation.router({
       ),
   },
   payment: {
+    list: implementation.payment.list
+      .use(requirePermission({ payment: ['read'] }))
+      .handler(
+        async ({ context, input }) =>
+          await listPaymentDirectory(context.databaseUrl, input),
+      ),
     listForInvoice: implementation.payment.listForInvoice
       .use(requirePermission({ payment: ['read'] }))
       .handler(

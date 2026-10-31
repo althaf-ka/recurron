@@ -20,7 +20,7 @@ interface ListInput {
 }
 
 const amountPaidExpression =
-  sql<number>`coalesce((select sum(${payment.amountMinor}) from ${payment} where ${payment.invoiceId} = ${invoice.id}), 0)`.mapWith(
+  sql<number>`coalesce((select sum(p.amount_minor) from payment p where p.invoice_id = "invoice"."id"), 0)`.mapWith(
     Number,
   )
 const today = () => new Date().toISOString().slice(0, 10)

@@ -31,6 +31,7 @@ import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -401,6 +402,12 @@ const ProductForm = ({
   record?: Product
 }) => {
   const client = useQueryClient()
+  const taxes = useQuery({
+    ...orpc.tax.list.queryOptions({
+      input: { page: 1, pageSize: 100, search: '' },
+    }),
+    enabled: !readOnly,
+  })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [variants, setVariants] = useState<VariantDraft[]>(() =>
     (record?.variants.filter((variant) => variant.isActive) ?? []).map(
@@ -432,6 +439,7 @@ const ProductForm = ({
       notes: optionalText(form, 'notes'),
       productType: text(form, 'productType'),
       salesPriceMinor: moneyInput(form, 'salesPriceMinor'),
+      taxRuleId: text(form, 'taxRuleId') || null,
       variants: variants.map((variant, index) => ({
         attributeName: text(form, `variants.${index}.attributeName`),
         isActive: true,
@@ -455,6 +463,34 @@ const ProductForm = ({
           <div className="space-y-6">
             <ProductDetailsFields errors={errors} record={record} />
             <PricingFields errors={errors} record={record} />
+            <Field label="Tax rule" name="taxRuleId">
+              <Select
+                name="taxRuleId"
+                defaultValue={record?.taxRuleId ?? ''}
+                items={[
+                  { label: 'No tax', value: '' },
+                  ...(taxes.data?.items ?? []).map((tax) => ({
+                    label: `${tax.name} (${tax.rateBps / 100}%)${tax.isActive ? '' : ' · Inactive'}`,
+                    value: tax.id,
+                  })),
+                ]}
+              >
+                <SelectTrigger id="taxRuleId">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="">No tax</SelectItem>
+                    {taxes.data?.items.map((tax) => (
+                      <SelectItem key={tax.id} value={tax.id}>
+                        {tax.name} ({tax.rateBps / 100}%)
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </Field>
+            <Feedback error={taxes.error} />
             <VariantsSection
               errors={errors}
               readOnly={readOnly}

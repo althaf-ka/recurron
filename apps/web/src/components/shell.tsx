@@ -39,6 +39,7 @@ import {
   SidebarProvider,
   SidebarRail,
   SidebarTrigger,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { Spinner } from '@/components/ui/spinner'
 import { can, homeFor } from '../lib/access'
@@ -48,6 +49,11 @@ import { Feedback } from './shared'
 
 const navigation = [
   { icon: LayoutDashboard, key: 'overview', label: 'Overview' },
+  { icon: ReceiptText, key: 'billing', label: 'Billing' },
+  { icon: ReceiptText, key: 'invoices', label: 'Invoices' },
+  { icon: ReceiptText, key: 'payments', label: 'Payments' },
+  { icon: ReceiptText, key: 'taxes', label: 'Taxes' },
+  { icon: ReceiptText, key: 'discounts', label: 'Discounts' },
   { icon: Package, key: 'products', label: 'Products' },
   { icon: CalendarRange, key: 'plans', label: 'Plans' },
   { icon: Users, key: 'customers', label: 'Customers' },
@@ -55,6 +61,11 @@ const navigation = [
 ] as const
 
 const pageLabels: Record<string, string> = {
+  taxes: 'Taxes',
+  discounts: 'Discounts',
+  billing: 'Billing',
+  invoices: 'Invoices',
+  payments: 'Payments',
   customers: 'Customers',
   overview: 'Overview',
   plans: 'Plans',
@@ -95,6 +106,83 @@ const SessionError = () => (
     </Card>
   </main>
 )
+
+const AppNavigation = ({
+  area,
+  root,
+  currentKey,
+}: {
+  area: 'admin' | 'app'
+  root: '/admin' | '/app'
+  currentKey: string
+}) => {
+  const { setOpenMobile } = useSidebar()
+  const groups = [
+    { label: 'Workspace', keys: ['overview'] },
+    {
+      label: 'Operations',
+      keys: [
+        'subscriptions',
+        'billing',
+        'invoices',
+        'payments',
+        ...(area === 'app' ? ['customers'] : []),
+      ],
+    },
+    {
+      label: area === 'admin' ? 'Catalog' : 'Reference',
+      keys: ['products', 'plans', ...(area === 'admin' ? ['customers'] : [])],
+    },
+    ...(area === 'admin'
+      ? [{ label: 'Configuration', keys: ['taxes', 'discounts'] }]
+      : []),
+  ]
+  return (
+    <SidebarContent>
+      {groups.map((group) => (
+        <SidebarGroup key={group.label}>
+          <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navigation
+                .filter((item) => group.keys.includes(item.key))
+                .map(({ icon: Icon, key, label }) => {
+                  const to = key === 'overview' ? root : `${root}/${key}`
+                  const readOnly =
+                    area === 'app' && (key === 'products' || key === 'plans')
+                  return (
+                    <SidebarMenuItem key={key}>
+                      <SidebarMenuButton
+                        isActive={currentKey === key}
+                        render={(props) => (
+                          <Link
+                            {...props}
+                            to={to}
+                            onClick={() => {
+                              setOpenMobile(false)
+                            }}
+                          />
+                        )}
+                        tooltip={label}
+                      >
+                        <Icon />
+                        <span>{label}</span>
+                        {readOnly ? (
+                          <SidebarMenuBadge className="text-[10px] font-normal text-muted-foreground">
+                            Read only
+                          </SidebarMenuBadge>
+                        ) : null}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      ))}
+    </SidebarContent>
+  )
+}
 
 export const Shell = ({ area }: { area: 'admin' | 'app' }) => {
   const session = authClient.useSession()
@@ -159,37 +247,7 @@ export const Shell = ({ area }: { area: 'admin' | 'app' }) => {
             </span>
           </Link>
         </SidebarHeader>
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>Workspace</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {navigation.map(({ icon: Icon, key, label }) => {
-                  const readOnly =
-                    area === 'app' && (key === 'products' || key === 'plans')
-                  const to = key === 'overview' ? root : `${root}/${key}`
-                  return (
-                    <SidebarMenuItem key={key}>
-                      <SidebarMenuButton
-                        isActive={currentKey === key}
-                        render={(props) => <Link {...props} to={to} />}
-                        tooltip={label}
-                      >
-                        <Icon />
-                        <span>{label}</span>
-                        {readOnly ? (
-                          <SidebarMenuBadge className="text-[10px] font-normal text-muted-foreground">
-                            Read only
-                          </SidebarMenuBadge>
-                        ) : null}
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
+        <AppNavigation area={area} root={root} currentKey={currentKey} />
         <SidebarFooter className="p-2">
           <UserMenu
             email={session.data.user.email}

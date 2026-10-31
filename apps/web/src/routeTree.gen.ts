@@ -15,15 +15,25 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminBillingRouteImport } from './routes/admin.billing'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
+import { Route as AdminDiscountsRouteImport } from './routes/admin.discounts'
+import { Route as AdminInvoicesRouteImport } from './routes/admin.invoices'
+import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin.subscriptions'
+import { Route as AdminTaxesRouteImport } from './routes/admin.taxes'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppBillingRouteImport } from './routes/app.billing'
 import { Route as AppCustomersRouteImport } from './routes/app.customers'
+import { Route as AppInvoicesRouteImport } from './routes/app.invoices'
+import { Route as AppPaymentsRouteImport } from './routes/app.payments'
 import { Route as AppPlansRouteImport } from './routes/app.plans'
 import { Route as AppProductsRouteImport } from './routes/app.products'
 import { Route as AppSubscriptionsRouteImport } from './routes/app.subscriptions'
+import { Route as AdminInvoicesInvoiceIdRouteImport } from './routes/admin.invoices_.$invoiceId'
+import { Route as AppInvoicesInvoiceIdRouteImport } from './routes/app.invoices_.$invoiceId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -55,9 +65,29 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminBillingRoute = AdminBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCustomersRoute = AdminCustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDiscountsRoute = AdminDiscountsRouteImport.update({
+  id: '/discounts',
+  path: '/discounts',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminInvoicesRoute = AdminInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminPlansRoute = AdminPlansRouteImport.update({
@@ -75,14 +105,34 @@ const AdminSubscriptionsRoute = AdminSubscriptionsRouteImport.update({
   path: '/subscriptions',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminTaxesRoute = AdminTaxesRouteImport.update({
+  id: '/taxes',
+  path: '/taxes',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppBillingRoute = AppBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCustomersRoute = AppCustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInvoicesRoute = AppInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPaymentsRoute = AppPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPlansRoute = AppPlansRouteImport.update({
@@ -100,6 +150,16 @@ const AppSubscriptionsRoute = AppSubscriptionsRouteImport.update({
   path: '/subscriptions',
   getParentRoute: () => AppRoute,
 } as any)
+const AdminInvoicesInvoiceIdRoute = AdminInvoicesInvoiceIdRouteImport.update({
+  id: '/invoices_/$invoiceId',
+  path: '/invoices/$invoiceId',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AppInvoicesInvoiceIdRoute = AppInvoicesInvoiceIdRouteImport.update({
+  id: '/invoices_/$invoiceId',
+  path: '/invoices/$invoiceId',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -107,31 +167,51 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/portal': typeof PortalRoute
+  '/admin/billing': typeof AdminBillingRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/discounts': typeof AdminDiscountsRoute
+  '/admin/invoices': typeof AdminInvoicesRoute
+  '/admin/payments': typeof AdminPaymentsRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
+  '/admin/taxes': typeof AdminTaxesRoute
+  '/app/billing': typeof AppBillingRoute
   '/app/customers': typeof AppCustomersRoute
+  '/app/invoices': typeof AppInvoicesRoute
+  '/app/payments': typeof AppPaymentsRoute
   '/app/plans': typeof AppPlansRoute
   '/app/products': typeof AppProductsRoute
   '/app/subscriptions': typeof AppSubscriptionsRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/admin/invoices/$invoiceId': typeof AdminInvoicesInvoiceIdRoute
+  '/app/invoices/$invoiceId': typeof AppInvoicesInvoiceIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/portal': typeof PortalRoute
+  '/admin/billing': typeof AdminBillingRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/discounts': typeof AdminDiscountsRoute
+  '/admin/invoices': typeof AdminInvoicesRoute
+  '/admin/payments': typeof AdminPaymentsRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
+  '/admin/taxes': typeof AdminTaxesRoute
+  '/app/billing': typeof AppBillingRoute
   '/app/customers': typeof AppCustomersRoute
+  '/app/invoices': typeof AppInvoicesRoute
+  '/app/payments': typeof AppPaymentsRoute
   '/app/plans': typeof AppPlansRoute
   '/app/products': typeof AppProductsRoute
   '/app/subscriptions': typeof AppSubscriptionsRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
+  '/admin/invoices/$invoiceId': typeof AdminInvoicesInvoiceIdRoute
+  '/app/invoices/$invoiceId': typeof AppInvoicesInvoiceIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -140,16 +220,26 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/portal': typeof PortalRoute
+  '/admin/billing': typeof AdminBillingRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/discounts': typeof AdminDiscountsRoute
+  '/admin/invoices': typeof AdminInvoicesRoute
+  '/admin/payments': typeof AdminPaymentsRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
+  '/admin/taxes': typeof AdminTaxesRoute
+  '/app/billing': typeof AppBillingRoute
   '/app/customers': typeof AppCustomersRoute
+  '/app/invoices': typeof AppInvoicesRoute
+  '/app/payments': typeof AppPaymentsRoute
   '/app/plans': typeof AppPlansRoute
   '/app/products': typeof AppProductsRoute
   '/app/subscriptions': typeof AppSubscriptionsRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
+  '/admin/invoices_/$invoiceId': typeof AdminInvoicesInvoiceIdRoute
+  '/app/invoices_/$invoiceId': typeof AppInvoicesInvoiceIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -159,31 +249,51 @@ export interface FileRouteTypes {
     | '/app'
     | '/login'
     | '/portal'
+    | '/admin/billing'
     | '/admin/customers'
+    | '/admin/discounts'
+    | '/admin/invoices'
+    | '/admin/payments'
     | '/admin/plans'
     | '/admin/products'
     | '/admin/subscriptions'
+    | '/admin/taxes'
+    | '/app/billing'
     | '/app/customers'
+    | '/app/invoices'
+    | '/app/payments'
     | '/app/plans'
     | '/app/products'
     | '/app/subscriptions'
     | '/admin/'
     | '/app/'
+    | '/admin/invoices/$invoiceId'
+    | '/app/invoices/$invoiceId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
     | '/portal'
+    | '/admin/billing'
     | '/admin/customers'
+    | '/admin/discounts'
+    | '/admin/invoices'
+    | '/admin/payments'
     | '/admin/plans'
     | '/admin/products'
     | '/admin/subscriptions'
+    | '/admin/taxes'
+    | '/app/billing'
     | '/app/customers'
+    | '/app/invoices'
+    | '/app/payments'
     | '/app/plans'
     | '/app/products'
     | '/app/subscriptions'
     | '/admin'
     | '/app'
+    | '/admin/invoices/$invoiceId'
+    | '/app/invoices/$invoiceId'
   id:
     | '__root__'
     | '/'
@@ -191,16 +301,26 @@ export interface FileRouteTypes {
     | '/app'
     | '/login'
     | '/portal'
+    | '/admin/billing'
     | '/admin/customers'
+    | '/admin/discounts'
+    | '/admin/invoices'
+    | '/admin/payments'
     | '/admin/plans'
     | '/admin/products'
     | '/admin/subscriptions'
+    | '/admin/taxes'
+    | '/app/billing'
     | '/app/customers'
+    | '/app/invoices'
+    | '/app/payments'
     | '/app/plans'
     | '/app/products'
     | '/app/subscriptions'
     | '/admin/'
     | '/app/'
+    | '/admin/invoices_/$invoiceId'
+    | '/app/invoices_/$invoiceId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -255,11 +375,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/billing': {
+      id: '/admin/billing'
+      path: '/billing'
+      fullPath: '/admin/billing'
+      preLoaderRoute: typeof AdminBillingRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/customers': {
       id: '/admin/customers'
       path: '/customers'
       fullPath: '/admin/customers'
       preLoaderRoute: typeof AdminCustomersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/discounts': {
+      id: '/admin/discounts'
+      path: '/discounts'
+      fullPath: '/admin/discounts'
+      preLoaderRoute: typeof AdminDiscountsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/invoices': {
+      id: '/admin/invoices'
+      path: '/invoices'
+      fullPath: '/admin/invoices'
+      preLoaderRoute: typeof AdminInvoicesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/payments': {
+      id: '/admin/payments'
+      path: '/payments'
+      fullPath: '/admin/payments'
+      preLoaderRoute: typeof AdminPaymentsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/plans': {
@@ -283,6 +431,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSubscriptionsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/taxes': {
+      id: '/admin/taxes'
+      path: '/taxes'
+      fullPath: '/admin/taxes'
+      preLoaderRoute: typeof AdminTaxesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/app/': {
       id: '/app/'
       path: '/'
@@ -290,11 +445,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/billing': {
+      id: '/app/billing'
+      path: '/billing'
+      fullPath: '/app/billing'
+      preLoaderRoute: typeof AppBillingRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/customers': {
       id: '/app/customers'
       path: '/customers'
       fullPath: '/app/customers'
       preLoaderRoute: typeof AppCustomersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/invoices': {
+      id: '/app/invoices'
+      path: '/invoices'
+      fullPath: '/app/invoices'
+      preLoaderRoute: typeof AppInvoicesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/payments': {
+      id: '/app/payments'
+      path: '/payments'
+      fullPath: '/app/payments'
+      preLoaderRoute: typeof AppPaymentsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/plans': {
@@ -318,41 +494,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSubscriptionsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/admin/invoices_/$invoiceId': {
+      id: '/admin/invoices_/$invoiceId'
+      path: '/invoices/$invoiceId'
+      fullPath: '/admin/invoices/$invoiceId'
+      preLoaderRoute: typeof AdminInvoicesInvoiceIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/app/invoices_/$invoiceId': {
+      id: '/app/invoices_/$invoiceId'
+      path: '/invoices/$invoiceId'
+      fullPath: '/app/invoices/$invoiceId'
+      preLoaderRoute: typeof AppInvoicesInvoiceIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminBillingRoute: typeof AdminBillingRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
+  AdminDiscountsRoute: typeof AdminDiscountsRoute
+  AdminInvoicesRoute: typeof AdminInvoicesRoute
+  AdminPaymentsRoute: typeof AdminPaymentsRoute
   AdminPlansRoute: typeof AdminPlansRoute
   AdminProductsRoute: typeof AdminProductsRoute
   AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
+  AdminTaxesRoute: typeof AdminTaxesRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminInvoicesInvoiceIdRoute: typeof AdminInvoicesInvoiceIdRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminBillingRoute: AdminBillingRoute,
   AdminCustomersRoute: AdminCustomersRoute,
+  AdminDiscountsRoute: AdminDiscountsRoute,
+  AdminInvoicesRoute: AdminInvoicesRoute,
+  AdminPaymentsRoute: AdminPaymentsRoute,
   AdminPlansRoute: AdminPlansRoute,
   AdminProductsRoute: AdminProductsRoute,
   AdminSubscriptionsRoute: AdminSubscriptionsRoute,
+  AdminTaxesRoute: AdminTaxesRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminInvoicesInvoiceIdRoute: AdminInvoicesInvoiceIdRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppRouteChildren {
+  AppBillingRoute: typeof AppBillingRoute
   AppCustomersRoute: typeof AppCustomersRoute
+  AppInvoicesRoute: typeof AppInvoicesRoute
+  AppPaymentsRoute: typeof AppPaymentsRoute
   AppPlansRoute: typeof AppPlansRoute
   AppProductsRoute: typeof AppProductsRoute
   AppSubscriptionsRoute: typeof AppSubscriptionsRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppInvoicesInvoiceIdRoute: typeof AppInvoicesInvoiceIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppBillingRoute: AppBillingRoute,
   AppCustomersRoute: AppCustomersRoute,
+  AppInvoicesRoute: AppInvoicesRoute,
+  AppPaymentsRoute: AppPaymentsRoute,
   AppPlansRoute: AppPlansRoute,
   AppProductsRoute: AppProductsRoute,
   AppSubscriptionsRoute: AppSubscriptionsRoute,
   AppIndexRoute: AppIndexRoute,
+  AppInvoicesInvoiceIdRoute: AppInvoicesInvoiceIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
