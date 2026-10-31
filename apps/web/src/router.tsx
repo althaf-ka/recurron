@@ -9,6 +9,8 @@ export const queryClient = new QueryClient({
 
 export const router = createRouter({
   routeTree,
+  defaultPendingMs: 0,
+  defaultPendingMinMs: 0,
   defaultPendingComponent: () => (
     <div className="flex min-h-svh flex-col items-center justify-center gap-3">
       <Spinner className="size-5 text-muted-foreground" />
@@ -16,7 +18,7 @@ export const router = createRouter({
     </div>
   ),
   context: { queryClient },
-  defaultPreload: 'intent',
+  defaultPreload: false,
   defaultPreloadStaleTime: 0,
   scrollRestoration: true,
 })

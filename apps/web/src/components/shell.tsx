@@ -102,6 +102,9 @@ export const Shell = ({ area }: { area: 'admin' | 'app' }) => {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   })
+  const isNavigating = useRouterState({
+    select: (state) => state.isLoading,
+  })
 
   if (session.isPending) {
     return (
@@ -169,7 +172,7 @@ export const Shell = ({ area }: { area: 'admin' | 'app' }) => {
                     <SidebarMenuItem key={key}>
                       <SidebarMenuButton
                         isActive={currentKey === key}
-                        render={<Link to={to} />}
+                        render={(props) => <Link {...props} to={to} />}
                         tooltip={label}
                       >
                         <Icon />
@@ -229,7 +232,17 @@ export const Shell = ({ area }: { area: 'admin' | 'app' }) => {
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-6 p-4 md:p-6 lg:p-8">
-          <Outlet />
+          {isNavigating ? (
+            <output
+              aria-live="polite"
+              className="flex min-h-48 items-center justify-center gap-2 text-sm text-muted-foreground"
+            >
+              <Spinner className="size-4" />
+              <span>Loading page…</span>
+            </output>
+          ) : (
+            <Outlet />
+          )}
         </div>
       </SidebarInset>
     </SidebarProvider>

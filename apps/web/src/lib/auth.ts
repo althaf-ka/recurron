@@ -7,5 +7,5 @@ export const authClient = createAuthClient({
   baseURL: API_URL,
   basePath: '/api/auth',
   plugins: [adminClient({ ac, roles })],
-  fetchOptions: { credentials: 'include' },
+  fetchOptions: { credentials: 'include', timeout: 10_000 },
 })
