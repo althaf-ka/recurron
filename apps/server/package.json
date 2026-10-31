@@ -8,7 +8,8 @@
     "build": "wrangler deploy --dry-run --outdir dist",
     "cf-typegen": "wrangler types --strict-vars=false",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/index.test.ts"
+    "test": "tsx --test src/index.test.ts",
+    "test:auth": "tsx --test src/authorization.test.ts"
   },
   "dependencies": {
     "@orpc/server": "catalog:",
@@ -23,6 +24,7 @@
     "@orpc/contract": "catalog:",
     "@recurron/typescript-config": "workspace:*",
     "@types/node": "catalog:",
+    "drizzle-orm": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "wrangler": "catalog:"

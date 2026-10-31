@@ -15,6 +15,13 @@
       "when": 1793434781366,
       "tag": "0001_pale_punisher",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793435770526,
+      "tag": "0002_fine_madame_web",
+      "breakpoints": true
     }
   ]
 }

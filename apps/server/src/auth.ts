@@ -1,3 +1,5 @@
+import { ac, roles } from '@recurron/api/access'
+import { admin } from 'better-auth/plugins/admin'
 import { createDatabase } from '@recurron/db'
 import * as schema from '@recurron/db/schema'
 import { betterAuth } from 'better-auth'
@@ -17,16 +19,10 @@ export const createAuth = (bindings: Env) => {
       transaction: false,
     }),
     emailAndPassword: { enabled: true },
+    plugins: [
+      admin({ ac, adminRoles: ['ADMIN'], defaultRole: 'CUSTOMER', roles }),
+    ],
     secret: env.BETTER_AUTH_SECRET,
     trustedOrigins: [env.WEB_ORIGIN],
-    user: {
-      additionalFields: {
-        role: {
-          defaultValue: 'CUSTOMER',
-          input: false,
-          type: ['ADMIN', 'STAFF', 'CUSTOMER'],
-        },
-      },
-    },
   })
 }

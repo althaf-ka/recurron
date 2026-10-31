@@ -1,3 +1,4 @@
+import { roleNames } from '@recurron/api/access'
 import { sql } from 'drizzle-orm'
 import {
   bigint,
@@ -14,9 +15,12 @@ import {
   unique,
 } from 'drizzle-orm/pg-core'
 
-export const userRole = pgEnum('user_role', ['ADMIN', 'STAFF', 'CUSTOMER'])
+export const userRole = pgEnum('user_role', roleNames)
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
+  banned: boolean('banned').default(false),
+  banReason: text('ban_reason'),
+  banExpires: timestamp('ban_expires'),
   role: userRole('role').default('CUSTOMER').notNull(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
@@ -40,6 +44,7 @@ export const session = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date())
       .notNull(),
+    impersonatedBy: text('impersonated_by'),
     ipAddress: text('ip_address'),
     userAgent: text('user_agent'),
     userId: text('user_id')

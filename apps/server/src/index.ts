@@ -2,6 +2,7 @@ import { RPCHandler } from '@orpc/server/fetch'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { createAuth } from './auth'
+import { createRpcContext } from './context'
 import { router } from './router'
 
 const app = new Hono<{ Bindings: Env }>()
@@ -22,7 +23,7 @@ app.get('/health', (c) => c.json({ status: 'ok' }))
 app.all('/api/auth/*', async (c) => await createAuth(c.env).handler(c.req.raw))
 app.all('/rpc/*', async (c) => {
   const { matched, response } = await rpcHandler.handle(c.req.raw, {
-    context: {},
+    context: await createRpcContext(c.env, c.req.raw.headers),
     prefix: '/rpc',
   })
   return matched ? c.newResponse(response.body, response) : await c.notFound()
