@@ -1,0 +1,17 @@
+{
+  "name": "recurron",
+  "private": true,
+  "packageManager": "pnpm@11.24.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "devDependencies": {
+    "turbo": "catalog:"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "preview": "pnpm --filter @recurron/web preview"
+  }
+}
