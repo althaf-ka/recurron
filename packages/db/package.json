@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:check": "tsx --env-file-if-exists=.env src/check.ts"
+    "db:check": "tsx --env-file-if-exists=.env src/check.ts",
+    "test:money": "tsx --test src/money.test.ts",
+    "test:integrity": "tsx --env-file-if-exists=.env --test src/integrity.test.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "catalog:",

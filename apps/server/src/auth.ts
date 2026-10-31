@@ -19,5 +19,14 @@ export const createAuth = (bindings: Env) => {
     emailAndPassword: { enabled: true },
     secret: env.BETTER_AUTH_SECRET,
     trustedOrigins: [env.WEB_ORIGIN],
+    user: {
+      additionalFields: {
+        role: {
+          defaultValue: 'CUSTOMER',
+          input: false,
+          type: ['ADMIN', 'STAFF', 'CUSTOMER'],
+        },
+      },
+    },
   })
 }
