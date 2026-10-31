@@ -10,6 +10,7 @@ import {
   integer,
   pgEnum,
   pgTable,
+  pgSequence,
   text,
   timestamp,
   unique,
@@ -141,8 +142,28 @@ export const billingRunStatus = pgEnum('billing_run_status', [
   'FAILED',
 ])
 
+export const invoiceNumberSequence = pgSequence('invoice_number_seq', {
+  startWith: 1,
+})
+
 const money = (name: string) => bigint(name, { mode: 'number' })
 const instant = (name: string) => timestamp(name, { withTimezone: true })
+
+export const taxRule = pgTable(
+  'tax_rule',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    rateBps: integer('rate_bps').notNull(),
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: instant('created_at').defaultNow().notNull(),
+    updatedAt: instant('updated_at')
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  () => [check('tax_rule_rate_bps_range', sql`rate_bps BETWEEN 0 AND 10000`)],
+)
 
 export const customer = pgTable(
   'customer',
@@ -175,6 +196,9 @@ export const product = pgTable(
   {
     id: text('id').primaryKey(),
     name: text('name').notNull(),
+    taxRuleId: text('tax_rule_id').references(() => taxRule.id, {
+      onDelete: 'restrict',
+    }),
     productType: productType('product_type').notNull(),
     salesPriceMinor: money('sales_price_minor').notNull(),
     costPriceMinor: money('cost_price_minor').notNull(),
@@ -187,7 +211,7 @@ export const product = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  () => [
+  (t) => [
     check(
       'product_sales_price_minor_range',
       sql`sales_price_minor BETWEEN 0 AND 9007199254740991`,
@@ -197,6 +221,7 @@ export const product = pgTable(
       sql`cost_price_minor BETWEEN 0 AND 9007199254740991`,
     ),
     check('product_structure_0', sql`currency_code ~ '^[A-Z]{3}$'`),
+    index('product_tax_rule_id_idx').on(t.taxRuleId),
   ],
 )
 
@@ -386,22 +411,6 @@ export const subscriptionLine = pgTable(
     ),
     index('subscription_line_subscription_id_idx').on(t.subscriptionId),
   ],
-)
-
-export const taxRule = pgTable(
-  'tax_rule',
-  {
-    id: text('id').primaryKey(),
-    name: text('name').notNull(),
-    rateBps: integer('rate_bps').notNull(),
-    isActive: boolean('is_active').default(true).notNull(),
-    createdAt: instant('created_at').defaultNow().notNull(),
-    updatedAt: instant('updated_at')
-      .defaultNow()
-      .$onUpdate(() => new Date())
-      .notNull(),
-  },
-  () => [check('tax_rule_rate_bps_range', sql`rate_bps BETWEEN 0 AND 10000`)],
 )
 
 export const discountRule = pgTable(
@@ -655,6 +664,7 @@ export const billingRun = pgTable(
     billingRunStatus: billingRunStatus('billing_run_status').notNull(),
     subscriptionsScanned: integer('subscriptions_scanned').notNull(),
     invoicesCreated: integer('invoices_created').notNull(),
+    failureCount: integer('failure_count').notNull().default(0),
     subscriptionsSkipped: integer('subscriptions_skipped').notNull(),
     totalAmountMinor: money('total_amount_minor').notNull(),
     startedAt: instant('started_at').notNull(),
@@ -669,6 +679,7 @@ export const billingRun = pgTable(
       'billing_run_invoices_created_nonnegative',
       sql`invoices_created >= 0`,
     ),
+    check('billing_run_failure_count_nonnegative', sql`failure_count >= 0`),
     check(
       'billing_run_subscriptions_skipped_nonnegative',
       sql`subscriptions_skipped >= 0`,

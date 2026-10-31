@@ -1,16 +1,61 @@
 import { subscriptionInput } from '@recurron/api/subscription'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { ChevronDownIcon, PlusIcon, ReceiptText } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { useState } from 'react'
-import { Feedback, Field, Pagination, Search } from '../components/ui'
+import { toast } from 'sonner'
+import { FormActions, FormSection } from '@/components/app/editor'
+import { PageHeader } from '@/components/app/page-header'
+import { QueryError } from '@/components/app/query-error'
+import {
+  isSubscriptionStatus,
+  SubscriptionStatusBadge,
+} from '@/components/app/status-badge'
+import type { SubscriptionStatus } from '@/components/app/status-badge'
+import { TableSkeleton } from '@/components/app/table-skeleton'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Spinner } from '@/components/ui/spinner'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Feedback, Field, Pagination, Search } from '../components/shared'
 import { useAccess } from '../lib/access'
 import { apiClient, orpc } from '../lib/api'
+import { displayDay } from '../lib/format'
 import { fieldAttributes, fieldErrors, optionalText, text } from '../lib/forms'
 
-type Subscription = Awaited<ReturnType<typeof apiClient.subscription.get>>
 type SubscriptionSummary = Awaited<
   ReturnType<typeof apiClient.subscription.list>
 >['items'][number]
-type SubscriptionStatus = Subscription['status']
 type SubscriptionInput = ReturnType<typeof subscriptionInput.parse>
 type LifecycleOperation =
   | 'activate'
@@ -29,9 +74,8 @@ const statusLabels: Record<SubscriptionStatus, string> = {
   PAUSED: 'Paused',
   QUOTATION: 'Quotation',
 }
+const statusItems = { ALL: 'All statuses', ...statusLabels } as const
 const currentDate = new Date().toISOString().slice(0, 10)
-const isSubscriptionStatus = (value: string): value is SubscriptionStatus =>
-  Object.hasOwn(statusLabels, value)
 
 const getActiveActions = (
   item: SubscriptionSummary,
@@ -110,27 +154,40 @@ const SubscriptionActions = ({
   pending: boolean
 }) => {
   const actions = getSubscriptionActions(item, access)
+  if (actions.length === 0) {
+    return <span className="text-xs text-muted-foreground">—</span>
+  }
   return (
-    <div className="actions">
-      {actions.map(({ label, operation }) => (
-        <button
-          disabled={pending}
-          key={operation}
-          onClick={() => {
-            onAction(item.id, operation)
-          }}
-          type="button"
-        >
-          {label}
-        </button>
-      ))}
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={<Button disabled={pending} size="sm" variant="ghost" />}
+      >
+        Manage
+        <ChevronDownIcon data-icon="inline-end" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuLabel>Lifecycle</DropdownMenuLabel>
+        {actions.map(({ label, operation }) => (
+          <DropdownMenuItem
+            disabled={pending}
+            key={operation}
+            onClick={() => {
+              onAction(item.id, operation)
+            }}
+          >
+            {label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
 const SubscriptionForm = ({
+  onCancel,
   onDone,
 }: {
+  onCancel: () => void
   onDone: (message: string) => void
 }) => {
   const client = useQueryClient()
@@ -155,10 +212,15 @@ const SubscriptionForm = ({
   const lookupsPending =
     customers.isPending || plans.isPending || products.isPending
   const lookupsError = customers.error ?? plans.error ?? products.error
+  const customerOptions = customers.data?.items ?? []
+  const planOptions = (plans.data?.items ?? []).filter((plan) => plan.isActive)
+  const productOptions = (products.data?.items ?? []).filter(
+    (product) => product.isActive,
+  )
 
   return (
     <form
-      className="editor"
+      className="space-y-6"
       onSubmit={(event) => {
         event.preventDefault()
         if (mutation.isPending || lookupsPending) {
@@ -187,145 +249,221 @@ const SubscriptionForm = ({
         }
       }}
     >
-      <fieldset disabled={mutation.isPending || lookupsPending}>
+      <fieldset
+        className="contents"
+        disabled={mutation.isPending || lookupsPending}
+      >
         {lookupsError ? <Feedback error={lookupsError} /> : null}
-        {lookupsPending ? (
-          <output>Loading customers, plans, and products…</output>
-        ) : null}
-        <div className="form-grid">
-          <Field errors={errors} label="Customer" name="customerId">
-            <select
-              {...fieldAttributes(errors, 'customerId')}
-              defaultValue=""
-              name="customerId"
-              required
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="space-y-6">
+            <FormSection
+              description="Choose who the subscription is for and which plan applies."
+              title="Parties and plan"
             >
-              <option disabled value="">
-                Choose a customer
-              </option>
-              {customers.data?.items.map((customer) => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field errors={errors} label="Plan" name="subscriptionPlanId">
-            <select
-              {...fieldAttributes(errors, 'subscriptionPlanId')}
-              defaultValue=""
-              name="subscriptionPlanId"
-              required
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field errors={errors} label="Customer" name="customerId">
+                  <Select
+                    items={customerOptions.map((customer) => ({
+                      label: customer.name,
+                      value: customer.id,
+                    }))}
+                    name="customerId"
+                  >
+                    <SelectTrigger
+                      {...fieldAttributes(errors, 'customerId')}
+                      className="w-full"
+                    >
+                      <SelectValue placeholder="Choose a customer" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {customerOptions.map((customer) => (
+                        <SelectItem key={customer.id} value={customer.id}>
+                          {customer.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field errors={errors} label="Plan" name="subscriptionPlanId">
+                  <Select
+                    items={planOptions.map((plan) => ({
+                      label: `${plan.name} · ${plan.billingFrequency.toLowerCase()}`,
+                      value: plan.id,
+                    }))}
+                    name="subscriptionPlanId"
+                  >
+                    <SelectTrigger
+                      {...fieldAttributes(errors, 'subscriptionPlanId')}
+                      className="w-full"
+                    >
+                      <SelectValue placeholder="Choose a plan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {planOptions.map((plan) => (
+                        <SelectItem key={plan.id} value={plan.id}>
+                          {plan.name} · {plan.billingFrequency.toLowerCase()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field errors={errors} label="Product" name="productId">
+                  <Select
+                    items={productOptions.map((product) => ({
+                      label: product.name,
+                      value: product.id,
+                    }))}
+                    name="productId"
+                  >
+                    <SelectTrigger
+                      {...fieldAttributes(errors, 'productId')}
+                      className="w-full"
+                    >
+                      <SelectValue placeholder="Choose a product" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {productOptions.map((product) => (
+                        <SelectItem key={product.id} value={product.id}>
+                          {product.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+            </FormSection>
+
+            <FormSection
+              description="The draft starts with a single product line."
+              title="Line item"
             >
-              <option disabled value="">
-                Choose a plan
-              </option>
-              {plans.data?.items
-                .filter((plan) => plan.isActive)
-                .map((plan) => (
-                  <option key={plan.id} value={plan.id}>
-                    {plan.name} · {plan.billingFrequency.toLowerCase()}
-                  </option>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  errors={errors}
+                  label="Line description"
+                  name="description"
+                >
+                  <Input
+                    {...fieldAttributes(errors, 'description')}
+                    defaultValue=""
+                    maxLength={500}
+                    name="description"
+                    required
+                  />
+                </Field>
+                <Field errors={errors} label="Quantity" name="quantity">
+                  <Input
+                    {...fieldAttributes(errors, 'quantity')}
+                    defaultValue={1}
+                    min={1}
+                    name="quantity"
+                    required
+                    step={1}
+                    type="number"
+                  />
+                </Field>
+                <Field
+                  description="Enter the amount in the smallest currency unit."
+                  errors={errors}
+                  label="Unit price (minor units)"
+                  name="unitPriceMinor"
+                >
+                  <Input
+                    {...fieldAttributes(errors, 'unitPriceMinor')}
+                    defaultValue={0}
+                    min={0}
+                    name="unitPriceMinor"
+                    required
+                    step={1}
+                    type="number"
+                  />
+                </Field>
+              </div>
+            </FormSection>
+
+            <FormSection
+              description="Set the billing window and payment terms."
+              title="Schedule"
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field errors={errors} label="Start date" name="startDate">
+                  <Input
+                    {...fieldAttributes(errors, 'startDate')}
+                    defaultValue={currentDate}
+                    name="startDate"
+                    required
+                    type="date"
+                  />
+                </Field>
+                <Field errors={errors} label="Expiry date" name="expiryDate">
+                  <Input
+                    {...fieldAttributes(errors, 'expiryDate')}
+                    defaultValue=""
+                    name="expiryDate"
+                    type="date"
+                  />
+                </Field>
+                <Field
+                  errors={errors}
+                  label="Payment terms (days)"
+                  name="paymentTermDays"
+                >
+                  <Input
+                    {...fieldAttributes(errors, 'paymentTermDays')}
+                    defaultValue={0}
+                    max={3650}
+                    min={0}
+                    name="paymentTermDays"
+                    required
+                    step={1}
+                    type="number"
+                  />
+                </Field>
+              </div>
+            </FormSection>
+          </div>
+
+          <div className="space-y-6">
+            <FormSection
+              description="A draft does not bill the customer yet."
+              title="What happens next"
+            >
+              <ol className="space-y-3 text-sm text-muted-foreground">
+                {[
+                  'Create the draft with the customer, plan, and line item.',
+                  'Create a quotation, then confirm it.',
+                  'Activate the subscription to begin billing.',
+                ].map((step, index) => (
+                  <li className="flex gap-3" key={step}>
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-medium text-foreground">
+                      {index + 1}
+                    </span>
+                    <span>{step}</span>
+                  </li>
                 ))}
-            </select>
-          </Field>
-          <Field errors={errors} label="Product" name="productId">
-            <select
-              {...fieldAttributes(errors, 'productId')}
-              defaultValue=""
-              name="productId"
-              required
-            >
-              <option disabled value="">
-                Choose a product
-              </option>
-              {products.data?.items
-                .filter((product) => product.isActive)
-                .map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.name}
-                  </option>
-                ))}
-            </select>
-          </Field>
-          <Field errors={errors} label="Line description" name="description">
-            <input
-              {...fieldAttributes(errors, 'description')}
-              defaultValue=""
-              maxLength={500}
-              name="description"
-              required
-            />
-          </Field>
-          <Field errors={errors} label="Quantity" name="quantity">
-            <input
-              {...fieldAttributes(errors, 'quantity')}
-              defaultValue={1}
-              min={1}
-              name="quantity"
-              required
-              step={1}
-              type="number"
-            />
-          </Field>
-          <Field
-            errors={errors}
-            label="Unit price (minor units)"
-            name="unitPriceMinor"
-          >
-            <input
-              {...fieldAttributes(errors, 'unitPriceMinor')}
-              defaultValue={0}
-              min={0}
-              name="unitPriceMinor"
-              required
-              step={1}
-              type="number"
-            />
-          </Field>
-          <Field errors={errors} label="Start date" name="startDate">
-            <input
-              {...fieldAttributes(errors, 'startDate')}
-              defaultValue={currentDate}
-              name="startDate"
-              required
-              type="date"
-            />
-          </Field>
-          <Field errors={errors} label="Expiry date" name="expiryDate">
-            <input
-              {...fieldAttributes(errors, 'expiryDate')}
-              defaultValue=""
-              name="expiryDate"
-              type="date"
-            />
-          </Field>
-          <Field
-            errors={errors}
-            label="Payment terms (days)"
-            name="paymentTermDays"
-          >
-            <input
-              {...fieldAttributes(errors, 'paymentTermDays')}
-              defaultValue={0}
-              max={3650}
-              min={0}
-              name="paymentTermDays"
-              required
-              step={1}
-              type="number"
-            />
-          </Field>
+              </ol>
+            </FormSection>
+            {lookupsPending ? (
+              <div className="flex items-center gap-2 rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
+                <Spinner className="size-4" />
+                Loading customers, plans, and products…
+              </div>
+            ) : null}
+          </div>
         </div>
-        <div className="form-footer">
-          <button
-            className="primary"
+
+        <FormActions>
+          <Button onClick={onCancel} type="button" variant="outline">
+            Cancel
+          </Button>
+          <Button
             disabled={lookupsError !== undefined && lookupsError !== null}
             type="submit"
           >
+            {mutation.isPending ? <Spinner data-icon="inline-start" /> : null}
             {mutation.isPending ? 'Saving…' : 'Create draft'}
-          </button>
-        </div>
+          </Button>
+        </FormActions>
       </fieldset>
       <Feedback error={mutation.error} />
     </form>
@@ -368,7 +506,6 @@ export const SubscriptionsPage = () => {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<SubscriptionStatus | ''>('')
   const [creating, setCreating] = useState(false)
-  const [message, setMessage] = useState<string>()
   const query = useQuery(
     orpc.subscription.list.queryOptions({
       input: { page, search, ...(status === '' ? {} : { status }) },
@@ -384,167 +521,224 @@ export const SubscriptionsPage = () => {
     }) => await runLifecycle(id, operation),
     onSuccess: async () => {
       await client.invalidateQueries({ queryKey: orpc.subscription.key() })
-      setMessage('Subscription updated.')
+      toast.success('Subscription updated.')
     },
   })
   const canCreate = access({ subscription: ['create'] })
+  const setStatusFilter = (value: string | null) => {
+    setStatus(
+      value === null || value === 'ALL' || !isSubscriptionStatus(value)
+        ? ''
+        : value,
+    )
+    setPage(1)
+  }
 
   if (creating) {
     return (
-      <section>
-        <button
-          className="back"
-          onClick={() => {
+      <div className="space-y-6">
+        <PageHeader
+          back={{
+            label: 'Back to subscriptions',
+            onClick: () => {
+              setCreating(false)
+            },
+          }}
+          description="Create a draft with one product line, then move it through the lifecycle."
+          eyebrow="Subscriptions"
+          title="New subscription"
+        />
+        <SubscriptionForm
+          onCancel={() => {
             setCreating(false)
           }}
-          type="button"
-        >
-          ← Back to subscriptions
-        </button>
-        <h1>New subscription</h1>
-        <p className="muted">Create a draft with one product line.</p>
-        <SubscriptionForm
           onDone={(notice) => {
             setCreating(false)
-            setMessage(notice)
+            toast.success(notice)
           }}
         />
-      </section>
+      </div>
+    )
+  }
+
+  let content: ReactNode
+  if (query.isPending) {
+    content = (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="pl-5">Subscription</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>Dates</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="pr-5 text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableSkeleton columns={5} />
+      </Table>
+    )
+  } else if (query.isError) {
+    content = (
+      <div className="p-5">
+        <QueryError
+          error={query.error}
+          onRetry={() => {
+            void query.refetch()
+          }}
+        />
+      </div>
+    )
+  } else if (query.data.items.length === 0) {
+    content = (
+      <Empty className="border-0 py-14">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <ReceiptText />
+          </EmptyMedia>
+          <EmptyTitle>
+            {search === '' && status === ''
+              ? 'No subscriptions yet'
+              : 'No matching subscriptions'}
+          </EmptyTitle>
+          <EmptyDescription>
+            {search === '' && status === ''
+              ? 'Create a draft to begin tracking a customer subscription.'
+              : 'Try a different search or status filter.'}
+          </EmptyDescription>
+        </EmptyHeader>
+        {search === '' && status === '' && canCreate ? (
+          <EmptyContent>
+            <Button
+              onClick={() => {
+                setCreating(true)
+              }}
+            >
+              <PlusIcon data-icon="inline-start" />
+              New subscription
+            </Button>
+          </EmptyContent>
+        ) : null}
+      </Empty>
+    )
+  } else {
+    content = (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="pl-5">Subscription</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>Dates</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="pr-5 text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {query.data.items.map((item) => (
+            <TableRow key={item.id}>
+              <TableCell className="pl-5">
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-medium">{item.subscriptionNumber}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {item.planName}
+                  </span>
+                </div>
+              </TableCell>
+              <TableCell>{item.customerName}</TableCell>
+              <TableCell className="text-muted-foreground">
+                {displayDay(item.startDate)}
+                {' → '}
+                {item.expiryDate === null
+                  ? 'No expiry'
+                  : displayDay(item.expiryDate)}
+              </TableCell>
+              <TableCell>
+                <SubscriptionStatusBadge status={item.status} />
+              </TableCell>
+              <TableCell className="pr-5 text-right">
+                <SubscriptionActions
+                  access={access}
+                  item={item}
+                  onAction={(id, operation) => {
+                    lifecycle.mutate({ id, operation })
+                  }}
+                  pending={lifecycle.isPending}
+                />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     )
   }
 
   return (
-    <section>
-      <div className="page-heading">
-        <div>
-          <h1>Subscriptions</h1>
-          <p className="muted">
-            Create drafts and move subscriptions through their lifecycle.
-          </p>
-        </div>
-        {canCreate ? (
-          <button
-            className="primary"
-            onClick={() => {
-              setMessage(undefined)
-              setCreating(true)
-            }}
-            type="button"
-          >
-            New subscription
-          </button>
-        ) : null}
-      </div>
-      <div className="filters">
-        <Search
-          label="Search subscription, customer, or plan"
-          onSearch={(value) => {
-            setSearch(value)
-            setPage(1)
-          }}
-          value={search}
-        />
-        <label>
-          <span className="sr-only">Filter by status</span>
-          <select
-            onChange={(event) => {
-              const { value } = event.currentTarget
-              setStatus(
-                value === '' || isSubscriptionStatus(value) ? value : '',
-              )
-              setPage(1)
-            }}
-            value={status}
-          >
-            <option value="">All statuses</option>
-            {Object.entries(statusLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-      <Feedback error={lifecycle.error} message={message} />
-      {(() => {
-        if (query.isPending) {
-          return <output>Loading subscriptions…</output>
+    <div className="space-y-6">
+      <PageHeader
+        actions={
+          canCreate ? (
+            <Button
+              onClick={() => {
+                setCreating(true)
+              }}
+            >
+              <PlusIcon data-icon="inline-start" />
+              New subscription
+            </Button>
+          ) : undefined
         }
-        if (query.isError) {
-          return (
-            <>
-              <Feedback error={query.error} />
-              <button
-                onClick={() => {
-                  void query.refetch()
-                }}
-                type="button"
-              >
-                Try again
-              </button>
-            </>
-          )
-        }
-        return (
-          <>
-            <div className="table-wrap">
-              <table>
-                <caption className="sr-only">Subscriptions</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Subscription</th>
-                    <th scope="col">Customer</th>
-                    <th scope="col">Plan</th>
-                    <th scope="col">Dates</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {query.data.items.map((item) => (
-                    <tr key={item.id}>
-                      <td>{item.subscriptionNumber}</td>
-                      <td>{item.customerName}</td>
-                      <td>{item.planName}</td>
-                      <td>
-                        {item.startDate} → {item.expiryDate ?? 'No expiry'}
-                      </td>
-                      <td>
-                        <span className="badge">
-                          {statusLabels[item.status]}
-                        </span>
-                      </td>
-                      <td>
-                        <SubscriptionActions
-                          access={access}
-                          item={item}
-                          onAction={(id, operation) => {
-                            lifecycle.mutate({ id, operation })
-                          }}
-                          pending={lifecycle.isPending}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {query.data.items.length === 0 ? (
-                <p className="empty">
-                  {search === '' && status === ''
-                    ? 'No subscriptions yet. Create a draft to begin.'
-                    : 'No subscriptions match these filters.'}
-                </p>
-              ) : null}
-            </div>
-            <Pagination
-              busy={query.isFetching}
-              onPage={setPage}
-              page={page}
-              total={query.data.total}
+        description="Create drafts and move subscriptions through their lifecycle."
+        eyebrow="Billing"
+        title="Subscriptions"
+      />
+      <Feedback error={lifecycle.error} />
+      <Card className="gap-0 overflow-hidden py-0">
+        <CardHeader className="flex flex-col gap-3 border-b px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Search
+              label="Search subscriptions"
+              onSearch={(value) => {
+                setSearch(value)
+                setPage(1)
+              }}
+              value={search}
             />
-          </>
-        )
-      })()}
-    </section>
+            <Select
+              items={statusItems}
+              onValueChange={setStatusFilter}
+              value={status === '' ? 'ALL' : status}
+            >
+              <SelectTrigger
+                aria-label="Filter by status"
+                className="w-full sm:w-40"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All statuses</SelectItem>
+                {Object.entries(statusLabels).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {query.data === undefined
+              ? 'Loading subscriptions…'
+              : `${query.data.total} ${query.data.total === 1 ? 'subscription' : 'subscriptions'}`}
+          </p>
+        </CardHeader>
+        <CardContent className="p-0">{content}</CardContent>
+        {query.data !== undefined && query.data.items.length > 0 ? (
+          <Pagination
+            busy={query.isFetching}
+            onPage={setPage}
+            page={page}
+            total={query.data.total}
+          />
+        ) : null}
+      </Card>
+    </div>
   )
 }

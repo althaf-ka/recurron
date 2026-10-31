@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./schema": "./src/schema.ts",
-    "./ownership": "./src/ownership.ts"
+    "./ownership": "./src/ownership.ts",
+    "./transaction": "./src/transaction.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

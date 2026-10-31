@@ -44,10 +44,11 @@ Use origins without a trailing slash or path, and use `localhost` consistently f
 ```sh
 pnpm db:migrate
 pnpm db:check
-pnpm dev
 ```
 
 `db:migrate` applies the committed migrations. `db:check` verifies the Neon connection and auth tables without changing data. `pnpm dev` starts both apps.
+
+There is no public signup in the UI. Sign in at `http://localhost:3000/login` using a provisioned account. Keep account credentials outside the repository.
 
 ## Local URLs
 

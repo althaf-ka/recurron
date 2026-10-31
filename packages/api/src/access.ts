@@ -4,6 +4,7 @@ import { adminAc, defaultStatements } from 'better-auth/plugins/admin/access'
 export const roleNames = ['ADMIN', 'STAFF', 'CUSTOMER'] as const
 
 export const operationalStatements = {
+  billing: ['preview', 'run'],
   customer: ['create', 'read', 'update'],
   discount: ['create', 'read', 'update'],
   invoice: ['create', 'read', 'confirm', 'cancel', 'send'],
@@ -36,6 +37,7 @@ export const roles = {
   ADMIN: ac.newRole({ ...adminAc.statements, ...operationalStatements }),
   CUSTOMER: ac.newRole({ portal: ['access'] }),
   STAFF: ac.newRole({
+    billing: operationalStatements.billing,
     customer: operationalStatements.customer,
     invoice: operationalStatements.invoice,
     payment: operationalStatements.payment,

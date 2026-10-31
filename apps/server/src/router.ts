@@ -34,10 +34,46 @@ import {
   updateTemplate,
   updateDraft as updateSubscriptionDraft,
 } from './modules/subscription/service'
+import {
+  preview as previewBilling,
+  run as runBilling,
+} from './modules/financial/billing'
+import {
+  createDiscount,
+  createTax,
+  getDiscount,
+  getTax,
+  listDiscounts,
+  listTaxes,
+  updateDiscount,
+  updateTax,
+} from './modules/financial/configuration'
+import {
+  cancel as cancelInvoice,
+  confirm as confirmInvoice,
+  get as getInvoice,
+  list as listInvoices,
+  listPayments,
+} from './modules/financial/invoice'
+import { recordPayment } from './modules/financial/payment'
 
 const implementation = implement(apiContract).$context<RpcContext>()
 
 export const router = implementation.router({
+  billing: {
+    preview: implementation.billing.preview
+      .use(requirePermission({ billing: ['preview'] }))
+      .handler(
+        async ({ context, input }) =>
+          await previewBilling(context.databaseUrl, input),
+      ),
+    run: implementation.billing.run
+      .use(requirePermission({ billing: ['run'] }))
+      .handler(
+        async ({ context, input }) =>
+          await runBilling(context.databaseUrl, input.billingDate),
+      ),
+  },
   customer: {
     create: implementation.customer.create
       .use(requirePermission({ customer: ['create'] }))
@@ -62,6 +98,72 @@ export const router = implementation.router({
       .handler(
         async ({ context, input }) =>
           await updateCustomer(context.databaseUrl, input.id, input.data),
+      ),
+  },
+  discount: {
+    create: implementation.discount.create
+      .use(requirePermission({ discount: ['create'] }))
+      .handler(
+        async ({ context, input }) =>
+          await createDiscount(context.databaseUrl, input),
+      ),
+    get: implementation.discount.get
+      .use(requirePermission({ discount: ['read'] }))
+      .handler(
+        async ({ context, input }) =>
+          await getDiscount(context.databaseUrl, input.id),
+      ),
+    list: implementation.discount.list
+      .use(requirePermission({ discount: ['read'] }))
+      .handler(
+        async ({ context, input }) =>
+          await listDiscounts(context.databaseUrl, input),
+      ),
+    update: implementation.discount.update
+      .use(requirePermission({ discount: ['update'] }))
+      .handler(
+        async ({ context, input }) =>
+          await updateDiscount(context.databaseUrl, input.id, input.data),
+      ),
+  },
+  invoice: {
+    cancel: implementation.invoice.cancel
+      .use(requirePermission({ invoice: ['cancel'] }))
+      .handler(
+        async ({ context, input }) =>
+          await cancelInvoice(context.databaseUrl, input.id),
+      ),
+    confirm: implementation.invoice.confirm
+      .use(requirePermission({ invoice: ['confirm'] }))
+      .handler(
+        async ({ context, input }) =>
+          await confirmInvoice(context.databaseUrl, input.id),
+      ),
+    get: implementation.invoice.get
+      .use(requirePermission({ invoice: ['read'] }))
+      .handler(
+        async ({ context, input }) =>
+          await getInvoice(context.databaseUrl, input.id),
+      ),
+    list: implementation.invoice.list
+      .use(requirePermission({ invoice: ['read'] }))
+      .handler(
+        async ({ context, input }) =>
+          await listInvoices(context.databaseUrl, input),
+      ),
+  },
+  payment: {
+    listForInvoice: implementation.payment.listForInvoice
+      .use(requirePermission({ payment: ['read'] }))
+      .handler(
+        async ({ context, input }) =>
+          await listPayments(context.databaseUrl, input.invoiceId),
+      ),
+    record: implementation.payment.record
+      .use(requirePermission({ payment: ['create'] }))
+      .handler(
+        async ({ context, input }) =>
+          await recordPayment(context.databaseUrl, input),
       ),
   },
   plan: {
@@ -242,5 +344,31 @@ export const router = implementation.router({
   },
   system: {
     ping: implementation.system.ping.handler(() => ({ message: 'pong' })),
+  },
+  tax: {
+    create: implementation.tax.create
+      .use(requirePermission({ tax: ['create'] }))
+      .handler(
+        async ({ context, input }) =>
+          await createTax(context.databaseUrl, input),
+      ),
+    get: implementation.tax.get
+      .use(requirePermission({ tax: ['read'] }))
+      .handler(
+        async ({ context, input }) =>
+          await getTax(context.databaseUrl, input.id),
+      ),
+    list: implementation.tax.list
+      .use(requirePermission({ tax: ['read'] }))
+      .handler(
+        async ({ context, input }) =>
+          await listTaxes(context.databaseUrl, input),
+      ),
+    update: implementation.tax.update
+      .use(requirePermission({ tax: ['update'] }))
+      .handler(
+        async ({ context, input }) =>
+          await updateTax(context.databaseUrl, input.id, input.data),
+      ),
   },
 })

@@ -30,6 +30,7 @@ export const productInput = z.object({
   notes: z.string().max(10_000).nullable(),
   productType: z.enum(['GOODS', 'SERVICE']),
   salesPriceMinor: minor.nonnegative(),
+  taxRuleId: z.string().nullable().default(null),
   variants: z.array(variantInput).max(100),
 })
 export const planInput = z

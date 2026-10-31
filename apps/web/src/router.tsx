@@ -1,5 +1,6 @@
 import { QueryClient } from '@tanstack/react-query'
 import { createRouter } from '@tanstack/react-router'
+import { Spinner } from '@/components/ui/spinner'
 import { routeTree } from './routeTree.gen'
 
 export const queryClient = new QueryClient({
@@ -9,7 +10,10 @@ export const queryClient = new QueryClient({
 export const router = createRouter({
   routeTree,
   defaultPendingComponent: () => (
-    <output className="page-loading">Loading your workspace…</output>
+    <div className="flex min-h-svh flex-col items-center justify-center gap-3">
+      <Spinner className="size-5 text-muted-foreground" />
+      <p className="text-sm text-muted-foreground">Loading your workspace…</p>
+    </div>
   ),
   context: { queryClient },
   defaultPreload: 'intent',
