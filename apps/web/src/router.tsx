@@ -8,6 +8,9 @@ export const queryClient = new QueryClient({
 
 export const router = createRouter({
   routeTree,
+  defaultPendingComponent: () => (
+    <output className="page-loading">Loading your workspace…</output>
+  ),
   context: { queryClient },
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,

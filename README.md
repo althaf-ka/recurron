@@ -51,15 +51,21 @@ pnpm dev
 
 ## Local URLs
 
-| URL                                     | Purpose                       |
-| --------------------------------------- | ----------------------------- |
-| `http://localhost:3000`                 | Web app with API ping status  |
-| `http://localhost:8787/health`          | API liveness check            |
-| `http://localhost:8787/rpc/system/ping` | Typed `system.ping` procedure |
-| `http://localhost:8787/api/auth/ok`     | Auth handler check            |
-| `http://localhost:8787/api/auth/*`      | Better Auth endpoints         |
+| URL                                     | Purpose                          |
+| --------------------------------------- | -------------------------------- |
+| `http://localhost:3000`                 | Login or role-specific workspace |
+| `http://localhost:8787/health`          | API liveness check               |
+| `http://localhost:8787/rpc/system/ping` | Typed `system.ping` procedure    |
+| `http://localhost:8787/api/auth/ok`     | Auth handler check               |
+| `http://localhost:8787/api/auth/*`      | Better Auth endpoints            |
 
 Health and ping work without database credentials. Authentication requires valid server configuration and a migrated database. Both browser clients include credentials, and CORS allows only the configured `WEB_ORIGIN`.
+
+## Current implementation
+
+Phase 4A backend and Phase 4B authentication/management UI are complete. ADMIN uses `/admin`; STAFF uses `/app` with a read-only catalog and editable customer directory. CUSTOMER accounts enter the `/portal` placeholder. The UI reuses the existing Better Auth permissions and oRPC contracts.
+
+See [Phase 4 UI routes and verification](docs/phase-4b-ui.md) and [Phase 4A API behavior](docs/phase-4a-api.md). Subscription and billing workflows are outside the current implementation.
 
 ## Commands
 

@@ -9,7 +9,9 @@
     "cf-typegen": "wrangler types --strict-vars=false",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/index.test.ts",
-    "test:auth": "tsx --test src/authorization.test.ts"
+    "test:auth": "tsx --test src/authorization.test.ts",
+    "test:catalog": "tsx --env-file-if-exists=../../packages/db/.env --env-file-if-exists=.dev.vars --test src/catalog.test.ts",
+    "test:catalog:unit": "tsx --test src/catalog-validation.test.ts"
   },
   "dependencies": {
     "@orpc/server": "catalog:",
