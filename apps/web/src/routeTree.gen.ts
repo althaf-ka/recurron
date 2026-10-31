@@ -18,10 +18,12 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
+import { Route as AdminSubscriptionsRouteImport } from './routes/admin.subscriptions'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppCustomersRouteImport } from './routes/app.customers'
 import { Route as AppPlansRouteImport } from './routes/app.plans'
 import { Route as AppProductsRouteImport } from './routes/app.products'
+import { Route as AppSubscriptionsRouteImport } from './routes/app.subscriptions'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -68,6 +70,11 @@ const AdminProductsRoute = AdminProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSubscriptionsRoute = AdminSubscriptionsRouteImport.update({
+  id: '/subscriptions',
+  path: '/subscriptions',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -88,6 +95,11 @@ const AppProductsRoute = AppProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSubscriptionsRoute = AppSubscriptionsRouteImport.update({
+  id: '/subscriptions',
+  path: '/subscriptions',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -98,9 +110,11 @@ export interface FileRoutesByFullPath {
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/app/customers': typeof AppCustomersRoute
   '/app/plans': typeof AppPlansRoute
   '/app/products': typeof AppProductsRoute
+  '/app/subscriptions': typeof AppSubscriptionsRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
 }
@@ -111,9 +125,11 @@ export interface FileRoutesByTo {
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/app/customers': typeof AppCustomersRoute
   '/app/plans': typeof AppPlansRoute
   '/app/products': typeof AppProductsRoute
+  '/app/subscriptions': typeof AppSubscriptionsRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
 }
@@ -127,9 +143,11 @@ export interface FileRoutesById {
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/app/customers': typeof AppCustomersRoute
   '/app/plans': typeof AppPlansRoute
   '/app/products': typeof AppProductsRoute
+  '/app/subscriptions': typeof AppSubscriptionsRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
 }
@@ -144,9 +162,11 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/admin/plans'
     | '/admin/products'
+    | '/admin/subscriptions'
     | '/app/customers'
     | '/app/plans'
     | '/app/products'
+    | '/app/subscriptions'
     | '/admin/'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
@@ -157,9 +177,11 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/admin/plans'
     | '/admin/products'
+    | '/admin/subscriptions'
     | '/app/customers'
     | '/app/plans'
     | '/app/products'
+    | '/app/subscriptions'
     | '/admin'
     | '/app'
   id:
@@ -172,9 +194,11 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/admin/plans'
     | '/admin/products'
+    | '/admin/subscriptions'
     | '/app/customers'
     | '/app/plans'
     | '/app/products'
+    | '/app/subscriptions'
     | '/admin/'
     | '/app/'
   fileRoutesById: FileRoutesById
@@ -252,6 +276,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProductsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/subscriptions': {
+      id: '/admin/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/admin/subscriptions'
+      preLoaderRoute: typeof AdminSubscriptionsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/app/': {
       id: '/app/'
       path: '/'
@@ -280,6 +311,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProductsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/subscriptions': {
+      id: '/app/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/app/subscriptions'
+      preLoaderRoute: typeof AppSubscriptionsRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -287,6 +325,7 @@ interface AdminRouteChildren {
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminPlansRoute: typeof AdminPlansRoute
   AdminProductsRoute: typeof AdminProductsRoute
+  AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -294,6 +333,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCustomersRoute: AdminCustomersRoute,
   AdminPlansRoute: AdminPlansRoute,
   AdminProductsRoute: AdminProductsRoute,
+  AdminSubscriptionsRoute: AdminSubscriptionsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
@@ -303,6 +343,7 @@ interface AppRouteChildren {
   AppCustomersRoute: typeof AppCustomersRoute
   AppPlansRoute: typeof AppPlansRoute
   AppProductsRoute: typeof AppProductsRoute
+  AppSubscriptionsRoute: typeof AppSubscriptionsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -310,6 +351,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCustomersRoute: AppCustomersRoute,
   AppPlansRoute: AppPlansRoute,
   AppProductsRoute: AppProductsRoute,
+  AppSubscriptionsRoute: AppSubscriptionsRoute,
   AppIndexRoute: AppIndexRoute,
 }
 

@@ -278,6 +278,7 @@ export const subscription = pgTable(
     status: subscriptionStatus('status').notNull(),
     startDate: date('start_date').notNull(),
     expiryDate: date('expiry_date'),
+    quotationValidUntil: date('quotation_valid_until'),
     nextBillingDate: date('next_billing_date'),
     paymentTermDays: integer('payment_term_days').notNull(),
     activatedAt: instant('activated_at'),
@@ -299,6 +300,57 @@ export const subscription = pgTable(
     index('subscription_status_idx').on(t.status),
     index('subscription_next_billing_date_idx').on(t.nextBillingDate),
     index('subscription_customer_id_idx').on(t.customerId),
+  ],
+)
+
+export const quotationTemplate = pgTable(
+  'quotation_template',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    subscriptionPlanId: text('subscription_plan_id')
+      .references(() => subscriptionPlan.id, { onDelete: 'restrict' })
+      .notNull(),
+    validityDays: integer('validity_days').notNull(),
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: instant('created_at').defaultNow().notNull(),
+    updatedAt: instant('updated_at')
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (t) => [
+    check('quotation_template_validity_days_positive', sql`validity_days > 0`),
+    index('quotation_template_active_idx').on(t.isActive),
+  ],
+)
+
+export const quotationTemplateLine = pgTable(
+  'quotation_template_line',
+  {
+    id: text('id').primaryKey(),
+    quotationTemplateId: text('quotation_template_id')
+      .references(() => quotationTemplate.id, { onDelete: 'cascade' })
+      .notNull(),
+    productId: text('product_id')
+      .references(() => product.id, { onDelete: 'restrict' })
+      .notNull(),
+    productVariantId: text('product_variant_id'),
+    description: text('description').notNull(),
+    quantity: integer('quantity').notNull(),
+    unitPriceMinor: money('unit_price_minor').notNull(),
+  },
+  (t) => [
+    foreignKey({
+      columns: [t.productVariantId, t.productId],
+      foreignColumns: [productVariant.id, productVariant.productId],
+    }).onDelete('restrict'),
+    check('quotation_template_line_quantity_positive', sql`quantity > 0`),
+    check(
+      'quotation_template_line_price_range',
+      sql`unit_price_minor BETWEEN 0 AND 9007199254740991`,
+    ),
+    index('quotation_template_line_template_id_idx').on(t.quotationTemplateId),
   ],
 )
 

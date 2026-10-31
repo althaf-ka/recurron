@@ -22,6 +22,18 @@ import {
   list as listCustomer,
   update as updateCustomer,
 } from './modules/customer/service'
+import {
+  archiveTemplate,
+  createTemplate,
+  create as createSubscription,
+  get as getSubscription,
+  getTemplate,
+  listTemplates,
+  lifecycle as subscriptionLifecycle,
+  list as listSubscriptions,
+  updateTemplate,
+  updateDraft as updateSubscriptionDraft,
+} from './modules/subscription/service'
 
 const implementation = implement(apiContract).$context<RpcContext>()
 
@@ -114,6 +126,118 @@ export const router = implementation.router({
       .handler(
         async ({ context, input }) =>
           await updateProduct(context.databaseUrl, input.id, input.data),
+      ),
+  },
+  quotationTemplate: {
+    archive: implementation.quotationTemplate.archive
+      .use(requirePermission({ quotationTemplate: ['archive'] }))
+      .handler(
+        async ({ context, input }) =>
+          await archiveTemplate(context.databaseUrl, input.id),
+      ),
+    create: implementation.quotationTemplate.create
+      .use(requirePermission({ quotationTemplate: ['create'] }))
+      .handler(
+        async ({ context, input }) =>
+          await createTemplate(context.databaseUrl, input),
+      ),
+    get: implementation.quotationTemplate.get
+      .use(requirePermission({ quotationTemplate: ['read'] }))
+      .handler(
+        async ({ context, input }) =>
+          await getTemplate(context.databaseUrl, input.id),
+      ),
+    list: implementation.quotationTemplate.list
+      .use(requirePermission({ quotationTemplate: ['read'] }))
+      .handler(
+        async ({ context, input }) =>
+          await listTemplates(context.databaseUrl, input),
+      ),
+    update: implementation.quotationTemplate.update
+      .use(requirePermission({ quotationTemplate: ['update'] }))
+      .handler(
+        async ({ context, input }) =>
+          await updateTemplate(context.databaseUrl, input.id, input.data),
+      ),
+  },
+  subscription: {
+    activate: implementation.subscription.activate
+      .use(requirePermission({ subscription: ['activate'] }))
+      .handler(
+        async ({ context, input }) =>
+          await subscriptionLifecycle(
+            context.databaseUrl,
+            input.id,
+            'activate',
+          ),
+      ),
+    close: implementation.subscription.close
+      .use(requirePermission({ subscription: ['close'] }))
+      .handler(
+        async ({ context, input }) =>
+          await subscriptionLifecycle(context.databaseUrl, input.id, 'close'),
+      ),
+    confirm: implementation.subscription.confirm
+      .use(requirePermission({ subscription: ['confirm'] }))
+      .handler(
+        async ({ context, input }) =>
+          await subscriptionLifecycle(context.databaseUrl, input.id, 'confirm'),
+      ),
+    create: implementation.subscription.create
+      .use(requirePermission({ subscription: ['create'] }))
+      .handler(
+        async ({ context, input }) =>
+          await createSubscription(context.databaseUrl, input),
+      ),
+    createQuotation: implementation.subscription.createQuotation
+      .use(requirePermission({ subscription: ['quote'] }))
+      .handler(
+        async ({ context, input }) =>
+          await subscriptionLifecycle(
+            context.databaseUrl,
+            input.id,
+            'createQuotation',
+          ),
+      ),
+    get: implementation.subscription.get
+      .use(requirePermission({ subscription: ['read'] }))
+      .handler(
+        async ({ context, input }) =>
+          await getSubscription(context.databaseUrl, input.id),
+      ),
+    list: implementation.subscription.list
+      .use(requirePermission({ subscription: ['read'] }))
+      .handler(
+        async ({ context, input }) =>
+          await listSubscriptions(context.databaseUrl, input),
+      ),
+    pause: implementation.subscription.pause
+      .use(requirePermission({ subscription: ['pause'] }))
+      .handler(
+        async ({ context, input }) =>
+          await subscriptionLifecycle(context.databaseUrl, input.id, 'pause'),
+      ),
+    renew: implementation.subscription.renew
+      .use(requirePermission({ subscription: ['renew'] }))
+      .handler(
+        async ({ context, input }) =>
+          await subscriptionLifecycle(context.databaseUrl, input.id, 'renew'),
+      ),
+    resume: implementation.subscription.resume
+      .use(requirePermission({ subscription: ['activate'] }))
+      .handler(
+        async ({ context, input }) =>
+          await subscriptionLifecycle(context.databaseUrl, input.id, 'resume'),
+      ),
+    updateDraft: implementation.subscription.updateDraft
+      .use(requirePermission({ subscription: ['create'] }))
+      .handler(
+        async ({ context, input }) =>
+          await updateSubscriptionDraft(
+            context.databaseUrl,
+            input.id,
+            input.data,
+          ),
       ),
   },
   system: {

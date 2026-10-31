@@ -68,13 +68,26 @@ export const Shell = ({ area }: { area: 'admin' | 'app' }) => {
   const root = area === 'admin' ? '/admin' : '/app'
   const navigation =
     area === 'admin'
-      ? (['overview', 'products', 'plans', 'customers'] as const)
-      : (['overview', 'customers', 'products', 'plans'] as const)
+      ? ([
+          'overview',
+          'products',
+          'plans',
+          'customers',
+          'subscriptions',
+        ] as const)
+      : ([
+          'overview',
+          'customers',
+          'products',
+          'plans',
+          'subscriptions',
+        ] as const)
   const labels = {
     customers: 'Customers',
     overview: 'Overview',
     plans: 'Plans',
     products: 'Products',
+    subscriptions: 'Subscriptions',
   }
 
   return (

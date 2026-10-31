@@ -7,7 +7,9 @@
     ".": "./src/index.ts",
     "./money": "./src/money.ts",
     "./access": "./src/access.ts",
-    "./catalog": "./src/catalog.ts"
+    "./catalog": "./src/catalog.ts",
+    "./subscription": "./src/subscription.ts",
+    "./billing-date": "./src/billing-date.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
