@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --port 3000",
+    "dev": "vite --port 3000 --strictPort",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview --port 3000"
@@ -14,7 +14,12 @@
     "@tanstack/react-query": "catalog:",
     "@tanstack/react-router": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "@orpc/client": "catalog:",
+    "@orpc/contract": "catalog:",
+    "@orpc/tanstack-query": "catalog:",
+    "better-auth": "catalog:",
+    "@recurron/api": "workspace:*"
   },
   "devDependencies": {
     "@recurron/typescript-config": "workspace:*",

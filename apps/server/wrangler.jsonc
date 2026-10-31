@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "recurron-server",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-30",
+  "compatibility_flags": ["nodejs_compat"],
+  "dev": {
+    "port": 8787
+  },
+  "vars": {
+    "WEB_ORIGIN": "http://localhost:3000",
+    "BETTER_AUTH_URL": "http://localhost:8787"
+  },
+  "observability": {
+    "enabled": true,
+    "traces": {
+      "enabled": true
+    }
+  },
+  "secrets": {
+    "required": ["DATABASE_URL", "BETTER_AUTH_SECRET"]
+  }
+}

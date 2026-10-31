@@ -1,0 +1,30 @@
+{
+  "name": "@recurron/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "cf-typegen": "wrangler types --strict-vars=false",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/index.test.ts"
+  },
+  "dependencies": {
+    "@recurron/api": "workspace:*",
+    "@recurron/db": "workspace:*",
+    "@orpc/server": "catalog:",
+    "better-auth": "catalog:",
+    "hono": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@recurron/typescript-config": "workspace:*",
+    "typescript": "catalog:",
+    "@orpc/client": "catalog:",
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "wrangler": "catalog:",
+    "@orpc/contract": "catalog:"
+  }
+}

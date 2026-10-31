@@ -1,0 +1,20 @@
+{
+  "name": "@recurron/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@orpc/contract": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@recurron/typescript-config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

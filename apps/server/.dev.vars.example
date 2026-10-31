@@ -1,0 +1,6 @@
+DATABASE_URL=postgresql://USER:PASSWORD@HOST.neon.tech/recurron?sslmode=require
+# Generate with: openssl rand -base64 32
+BETTER_AUTH_SECRET=replace-with-a-random-secret-at-least-32-characters
+# Defaults are in wrangler.jsonc. Override both for other origins.
+WEB_ORIGIN=http://localhost:3000
+BETTER_AUTH_URL=http://localhost:8787
